@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Атмосферный трекер привычек</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            color: #333;
+        }
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: color 0.5s ease;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #5c6bc0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3f51b5;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .habit-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .delete-btn {
+            background-color: #e57373;
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+        .delete-btn:hover {
+            background-color: #ef5350;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 id="mainTitle">Трекер привычек</h1>
+        
+        <div class="input-group">
+            <input type="text" id="habitInput" placeholder="Введите привычку...">
+            <button id="addHabitBtn">Добавить</button>
+        </div>
+
+        <ul id="habitList"></ul>
+    </div>
+
+    <script>
+        const habitInput = document.getElementById('habitInput');
+        const addHabitBtn = document.getElementById('addHabitBtn');
+        const habitList = document.getElementById('habitList');
+        const mainTitle = document.getElementById('mainTitle');
+
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+
+        function updateTimeTheme() {
+            const currentHour = new Date().getHours();
+            
+            if (currentHour >= 6 && currentHour < 12) {
+                document.body.style.backgroundColor = '#ffe6cc';
+                mainTitle.style.color = '#333333';
+            } else if (currentHour >= 12 && currentHour < 18) {
+                document.body.style.backgroundColor = '#fff5eb';
+                mainTitle.style.color = '#333333';
+            } else if (currentHour >= 18 && currentHour < 24) {
+                document.body.style.backgroundColor = '#ffcc99';
+                mainTitle.style.color = '#333333';
+            } else {
+                document.body.style.backgroundColor = '#2c2c2c';
+                mainTitle.style.color = '#ffffff';
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('habits', JSON.stringify(habits));
+        }
+
+        function renderHabits() {
+            habitList.innerHTML = '';
+            habits.forEach((habit, index) => {
+                const li = document.createElement('li');
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'habit-content';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = habit.completed;
+                checkbox.addEventListener('change', function() {
+                    habits[index].completed = this.checked;
+                    if (this.checked) {
+                        textSpan.classList.add('completed');
+                    } else {
+                        textSpan.classList.remove('completed');
+                    }
+                    saveToLocalStorage();
+                });
+
+                const textSpan = document.createElement('span');
+                textSpan.textContent = habit.text;
+                if (habit.completed) {
+                    textSpan.classList.add('completed');
+                }
+
+                contentDiv.appendChild(checkbox);
+                contentDiv.appendChild(textSpan);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Удалить';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.addEventListener('click', function() {
+                    habits.splice(index, 1);
+                    saveToLocalStorage();
+                    renderHabits();
+                });
+
+                li.appendChild(contentDiv);
+                li.appendChild(deleteBtn);
+                habitList.appendChild(li);
+            });
+        }
+
+        function addHabit() {
+            const habitText = habitInput.value.trim();
+            if (habitText === '') return;
+
+            habits.push({
+                text: habitText,
+                completed: false
+            });
+
+            saveToLocalStorage();
+            renderHabits();
+
+            habitInput.value = '';
+            habitInput.focus();
+        }
+
+        addHabitBtn.addEventListener('click', addHabit);
+        habitInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addHabit();
+            }
+        });
+
+        updateTimeTheme();
+        setInterval(updateTimeTheme, 5000);
+
+        renderHabits();
+    </script>
+
+</body>
+</html>
