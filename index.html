@@ -3,206 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Атмосферный трекер привычек</title>
+    <title>Атмосферный трекер</title>
     <style>
-        body {
-            font-family: sans-serif;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            transition: background-color 0.5s ease, color 0.5s ease;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            color: #333;
-        }
-        h1 {
-            font-size: 24px;
-            margin-top: 0;
-            margin-bottom: 20px;
-            text-align: center;
-            transition: color 0.5s ease;
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            flex: 1;
-            padding: 8px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 8px 16px;
-            font-size: 16px;
-            background-color: #5c6bc0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #3f51b5;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        li {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .habit-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-        .completed {
-            text-decoration: line-through;
-            color: #888;
-        }
-        .delete-btn {
-            background-color: #e57373;
-            padding: 4px 8px;
-            font-size: 14px;
-        }
-        .delete-btn:hover {
-            background-color: #ef5350;
-        }
+        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 30px; transition: background 0.5s, color 0.5s; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); width: 320px; }
+        h1 { font-size: 20px; color: #ff8c42; text-align: center; margin-top: 0; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ffcc99; border-radius: 8px; outline: none; font-size: 14px; }
+        .add-btn { background: #ff8c42; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .add-btn:hover { background: #e0732f; }
+        ul { list-style: none; padding: 0; margin: 0 0 20px 0; }
+        li { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
+        .task-text { flex: 1; margin-left: 10px; font-size: 15px; word-break: break-word; }
+        .completed { text-decoration: line-through; color: #aaa; }
+        .del-btn { background: #ff4d4d; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; }
+        
+        .streak-info { text-align: center; font-weight: bold; font-size: 16px; color: #333; margin-bottom: 15px; background: #fff2e6; padding: 8px; border-radius: 8px; }
+        .achievements { border-top: 2px dashed #ffcc99; padding-top: 15px; }
+        .achievements h3 { font-size: 15px; color: #666; margin: 0 0 10px 0; text-align: center; }
+        .badge-container { display: flex; justify-content: space-around; }
+        .badge { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #888; font-weight: bold; text-align: center; width: 80px; }
+        .badge-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: #e0e0e0; filter: grayscale(1); margin-bottom: 5px; border: 2px solid #ccc; transition: all 0.3s; }
+        .badge.active .badge-icon { filter: grayscale(0); background: white; border-color: #ff8c42; box-shadow: 0 4px 8px rgba(255,140,66,0.2); }
+        .badge.active { color: #333; }
+        
+        body.night-theme { background: #2c2c2c !important; color: #ffffff; }
+        body.night-theme .container { background: #3d3d3d; color: #ffffff; }
+        body.night-theme h1 { color: #ffaa66; }
+        body.night-theme .streak-info { background: #4a4a4a; color: #fff; }
+        body.night-theme li { border-color: #4a4a4a; }
+        body.night-theme .task-text { color: #fff; }
+        body.night-theme .completed { color: #777; }
+        body.night-theme input[type="text"] { background: #555; border-color: #666; color: #fff; }
+        body.night-theme .achievements h3 { color: #bbb; }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1 id="mainTitle">Трекер привычек</h1>
+        <h1 id="mainTitle">Атмосферный трекер</h1>
         
-        <div class="input-group">
-            <input type="text" id="habitInput" placeholder="Введите привычку...">
-            <button id="addHabitBtn">Добавить</button>
-        </div>
+        <div class="streak-info" id="streakDisplay">🔥 Серия постоянства: 0 дней</div>
 
-        <ul id="habitList"></ul>
+        <div class="input-group">
+            <input type="text" id="taskInput" placeholder="Новая привычка...">
+            <button class="add-btn" onclick="addTask()">Добавить</button>
+        </div>
+        
+        <ul id="taskList"></ul>
+
+        <div class="achievements">
+            <h3>Мои достижения</h3>
+            <div class="badge-container">
+                <div class="badge" id="badge3">
+                    <div class="badge-icon">🥉</div>
+                    Бронза (3 дн.)
+                </div>
+                <div class="badge" id="badge7">
+                    <div class="badge-icon">🥈</div>
+                    Серебро (7 дн.)
+                </div>
+                <div class="badge" id="badge21">
+                    <div class="badge-icon">🥇</div>
+                    Золото (21 дн.)
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const habitInput = document.getElementById('habitInput');
-        const addHabitBtn = document.getElementById('addHabitBtn');
-        const habitList = document.getElementById('habitList');
-        const mainTitle = document.getElementById('mainTitle');
-
         let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        let streak = parseInt(localStorage.getItem('habit_streak')) || 0;
+        let lastCheckDate = localStorage.getItem('last_check_date') || "";
 
         function updateTimeTheme() {
-            const currentHour = new Date().getHours();
+            const hour = new Date().getHours();
+            const body = document.body;
             
-            if (currentHour >= 6 && currentHour < 12) {
-                document.body.style.backgroundColor = '#ffe6cc';
-                mainTitle.style.color = '#333333';
-            } else if (currentHour >= 12 && currentHour < 18) {
-                document.body.style.backgroundColor = '#fff5eb';
-                mainTitle.style.color = '#333333';
-            } else if (currentHour >= 18 && currentHour < 24) {
-                document.body.style.backgroundColor = '#ffcc99';
-                mainTitle.style.color = '#333333';
+            body.classList.remove('night-theme');
+            
+            if (hour >= 6 && hour < 12) {
+                body.style.backgroundColor = "#ffe6cc";
+            } else if (hour >= 12 && hour < 18) {
+                body.style.backgroundColor = "#fff5eb";
+            } else if (hour >= 18 && hour < 24) {
+                body.style.backgroundColor = "#ffcc99";
             } else {
-                document.body.style.backgroundColor = '#2c2c2c';
-                mainTitle.style.color = '#ffffff';
+                body.style.backgroundColor = "#2c2c2c";
+                body.classList.add('night-theme');
             }
         }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('habits', JSON.stringify(habits));
+        function checkStreakLogic() {
+            if (lastCheckDate === "") return;
+            const todayStr = new Date().toDateString();
+            const lastDate = new Date(lastCheckDate);
+            const today = new Date(todayStr);
+            const diffTime = Math.abs(today - lastDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 1 && lastCheckDate !== todayStr) {
+                streak = 0;
+                localStorage.setItem('habit_streak', streak);
+            }
         }
 
-        function renderHabits() {
-            habitList.innerHTML = '';
+        function render() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            
             habits.forEach((habit, index) => {
                 const li = document.createElement('li');
-
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'habit-content';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = habit.completed;
-                checkbox.addEventListener('change', function() {
-                    habits[index].completed = this.checked;
-                    if (this.checked) {
-                        textSpan.classList.add('completed');
-                    } else {
-                        textSpan.classList.remove('completed');
-                    }
-                    saveToLocalStorage();
-                });
-
-                const textSpan = document.createElement('span');
-                textSpan.textContent = habit.text;
-                if (habit.completed) {
-                    textSpan.classList.add('completed');
-                }
-
-                contentDiv.appendChild(checkbox);
-                contentDiv.appendChild(textSpan);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Удалить';
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.addEventListener('click', function() {
-                    habits.splice(index, 1);
-                    saveToLocalStorage();
-                    renderHabits();
-                });
-
-                li.appendChild(contentDiv);
-                li.appendChild(deleteBtn);
-                habitList.appendChild(li);
-            });
-        }
-
-        function addHabit() {
-            const habitText = habitInput.value.trim();
-            if (habitText === '') return;
-
-            habits.push({
-                text: habitText,
-                completed: false
+                li.innerHTML = `
+                    <input type="checkbox" ${habit.done ? 'checked' : ''} onclick="toggleHabit(${index})">
+                    <span class="task-text ${habit.done ? 'completed' : ''}">${habit.text}</span>
+                    <button class="del-btn" onclick="deleteHabit(${index})">Х</button>
+                `;
+                list.appendChild(li);
             });
 
-            saveToLocalStorage();
-            renderHabits();
-
-            habitInput.value = '';
-            habitInput.focus();
+            document.getElementById('streakDisplay').innerText = `🔥 Серия постоянства: ${streak} дней`;
+            document.getElementById('badge3').classList.toggle('active', streak >= 3);
+            document.getElementById('badge7').classList.toggle('active', streak >= 7);
+            document.getElementById('badge21').classList.toggle('active', streak >= 21);
         }
 
-        addHabitBtn.addEventListener('click', addHabit);
-        habitInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addHabit();
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            if (input.value.trim() === '') return;
+            habits.push({ text: input.value, done: false });
+            input.value = '';
+            saveAndRender();
+        }
+
+        function toggleHabit(index) {
+            habits[index].done = !habits[index].done;
+            checkAllTasksCompleted();
+            saveAndRender();
+        }
+
+        function checkAllTasksCompleted() {
+            if (habits.length === 0) return;
+            const allDone = habits.every(h => h.done);
+            const todayStr = new Date().toDateString();
+            
+            if (allDone && lastCheckDate !== todayStr) {
+                streak++;
+                lastCheckDate = todayStr;
+                localStorage.setItem('habit_streak', streak);
+                localStorage.setItem('last_check_date', lastCheckDate);
             }
-        });
+        }
+
+        function deleteHabit(index) {
+            habits.splice(index, 1);
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('habits', JSON.stringify(habits));
+            render();
+        }
 
         updateTimeTheme();
         setInterval(updateTimeTheme, 5000);
-
-        renderHabits();
+        checkStreakLogic();
+        render();
     </script>
-
 </body>
 </html>
