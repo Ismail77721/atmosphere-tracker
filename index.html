@@ -11,21 +11,16 @@
         @keyframes pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
         @keyframes neonGlow { 0%, 100% { box-shadow: 0 0 15px #bb86fc; } 50% { box-shadow: 0 0 35px #6f42c1; } }
         @keyframes cozyGlow { 0%, 100% { box-shadow: 0 0 15px #ffb366; } 50% { box-shadow: 0 0 35px #ff8000; } }
-        @keyframes rainAnim { 0% { background-position: 0px 0px; } 100% { background-position: 400px 3200px; } }
-        @keyframes snowAnim { 0% { background-position: 0px 0px; } 100% { background-position: 200px 1200px; } }
-
-        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 20px; transition: all 0.5s ease; min-height: 100vh; margin: 0; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; image-rendering: -webkit-optimize-contrast; position: relative; }
+        
+        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 20px; transition: all 0.5s ease; min-height: 100vh; margin: 0; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; image-rendering: -webkit-optimize-contrast; position: relative; overflow: hidden; }
         #brightnessMask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; opacity: 0; pointer-events: none; z-index: 9999; transition: opacity 0.1s; }
 
-        #weatherLayer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9998; display: none; opacity: 0.6; }
-        #weatherLayer.rain { display: block; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://w3.org" width="40" height="320"><line x1="20" y1="0" x2="20" y2="40" stroke="rgba(174,219,255,0.7)" stroke-width="1.5"/></svg>'); animation: rainAnim 0.6s linear infinite; }
-        #weatherLayer.snow { display: block; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://w3.org" width="50" height="50"><circle cx="25" cy="25" r="3" fill="white" opacity="0.8"/></svg>'); animation: snowAnim 4s linear infinite; }
-
-        .container { background: rgba(255, 255, 255, 0.45); padding: 20px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); width: 320px; transition: background 0.3s ease, border 0.5s ease, box-shadow 0.5s ease; position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; backdrop-filter: blur(4px); margin-bottom: 50px; }
-        .tab-title { font-size: 22px; font-weight: bold; color: #ff8c42; margin-top: 0; margin-bottom: 20px; text-align: left; transition: color 0.5s; }
-        .tab-content { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; position: relative; }
-        .tab-content.active { display: flex; flex-direction: column; }
+        .container { background: rgba(255, 255, 255, 0.45); padding: 20px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); width: 320px; transition: background 0.3s ease, border 0.5s ease, box-shadow 0.5s ease; position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; backdrop-filter: blur(4px); margin-bottom: 50px; z-index: 10; }
+        .tab-title { font-size: 22px; font-weight: bold; color: #ff8c42; margin-top: 0; margin-bottom: 20px; text-align: left; transition: color 0.5s; z-index: 2; }
         
+        #weatherCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .tab-content { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; position: relative; z-index: 2; }
+        .tab-content.active { display: flex; flex-direction: column; }
         ul { list-style: none; padding: 0; margin: 0; flex: 1; }
         li { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
         .task-text { flex: 1; margin-left: 10px; font-size: 15px; word-break: break-word; color: #111; font-weight: bold; }
@@ -43,12 +38,11 @@
         .modal-btn-save { background: #ff8c42; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .modal-btn-cancel { background: #eee; color: #444; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
 
-        .nav-bar { display: flex; justify-content: space-around; background: rgba(255, 255, 255, 0.45); border-top: 1px solid rgba(0,0,0,0.08); margin: 15px -20px -20px -20px; padding: 12px 0; backdrop-filter: blur(10px); }
+        .nav-bar { display: flex; justify-content: space-around; background: rgba(255, 255, 255, 0.45); border-top: 1px solid rgba(0,0,0,0.08); margin: 15px -20px -20px -20px; padding: 12px 0; backdrop-filter: blur(10px); z-index: 6; }
         .nav-btn { background: none; border: none; color: #444; font-size: 22px; cursor: pointer; width: 50px; height: 40px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; position: relative; }
         .nav-btn .nav-label { font-size: 9px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #333; }
         .nav-btn.active { color: #ff8c42; background: rgba(255,140,66,0.15); }
         .nav-btn.active .nav-label { color: #ff8c42; font-weight: 900; }
-
         .streak-info { text-align: center; font-weight: bold; font-size: 16px; color: #222; margin-bottom: 20px; background: rgba(255, 242, 230, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,140,66,0.2); }
         .badge-container { display: flex; justify-content: space-around; margin-top: 15px; }
         .badge { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #444; font-weight: bold; text-align: center; width: 80px; }
@@ -62,7 +56,7 @@
         .setting-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #ff8c42; cursor: pointer; margin-top: -5px; }
 
         .weather-btn-grid { display: flex; gap: 5px; margin-top: 5px; }
-        .w-btn { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.6); cursor: pointer; font-size: 11px; font-weight: bold; }
+        .w-btn { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.6); cursor: pointer; font-size: 11px; font-weight: bold; color: #111; }
         .w-btn.active { background: #ff8c42; color: white; border-color: #ff8c42; }
 
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -143,8 +137,8 @@
 </head>
 <body>
     <div id="brightnessMask"></div>
-    <div id="weatherLayer"></div>
     <div class="container" id="mainContainer">
+        <canvas id="weatherCanvas"></canvas>
         <div class="modal-overlay" id="modalInputOverlay">
             <div class="modal-card">
                 <h4 id="modalTypeTitle">Добавить элемент</h4>
@@ -233,27 +227,25 @@
         let savedOpacity = parseInt(localStorage.getItem('container_opacity')) || 93;
         let currentSimulationWeather = localStorage.getItem('sim_weather') || "sun";
         let activeModalType = '';
+        let isScreenPressed = false;
 
-        try {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-        } catch(e) {}
+        try { Telegram.WebApp.ready(); Telegram.WebApp.expand(); } catch(e) {}
 
-        function triggerHaptic() {
-            try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e) {}
-        }
+        function triggerHaptic() { try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e) {} }
+
+        document.addEventListener('pointerdown', () => {
+            isScreenPressed = true;
+            try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e) {}
+        });
+        document.addEventListener('pointerup', () => { isScreenPressed = false; });
 
         function loadTelegramUser() {
             try {
                 const user = Telegram.WebApp.initDataUnsafe?.user;
                 if (user && user.first_name) {
                     document.getElementById('userNameTitle').innerText = `${user.first_name}, ваш прогресс`;
-                } else {
-                    document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`;
-                }
-            } catch(e) {
-                document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`;
-            }
+                } else { document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`; }
+            } catch(e) { document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`; }
         }
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -265,14 +257,11 @@
                 if (volume === 0) return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                osc.type = type; osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
                 gain.gain.setValueAtTime(volume * 0.1, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
             } catch(e) {}
         }
 
@@ -280,8 +269,7 @@
         function testVolumeSound() { const volSlider = document.getElementById('volumeSlider'); playSound(300 + (volSlider.value * 4), 0.15, 'sine'); }
 
         function switchTab(tabId) {
-            triggerHaptic();
-            playClickSound();
+            triggerHaptic(); playClickSound();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
@@ -297,8 +285,7 @@
         function changeContainerOpacity() {
             const slider = document.getElementById('opacitySlider');
             const container = document.getElementById('mainContainer');
-            const val = slider.value;
-            localStorage.setItem('container_opacity', val);
+            const val = slider.value; localStorage.setItem('container_opacity', val);
             if (currentTheme === "space") container.style.background = `rgba(24, 20, 36, ${val / 100})`;
             else if (currentTheme === "cat") container.style.background = `rgba(58, 39, 29, ${val / 100})`;
             else if (currentTheme === "forest") container.style.background = `rgba(244, 249, 244, ${val / 100})`;
@@ -306,33 +293,66 @@
             else if (currentTheme === "mountain") container.style.background = `rgba(248, 249, 250, ${val / 100})`;
             else container.style.background = `rgba(255, 255, 255, ${val / 100})`;
         }
+        const canvas = document.getElementById('weatherCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
 
-        function setWeather(weatherType) {
-            triggerHaptic();
-            currentSimulationWeather = weatherType;
-            localStorage.setItem('sim_weather', weatherType);
-            document.querySelectorAll('.w-btn').forEach(btn => btn.classList.remove('active'));
-            const layer = document.getElementById('weatherLayer');
-            layer.className = ""; 
-            if (weatherType === 'rain') {
-                document.getElementById('w-rain').classList.add('active');
-                layer.classList.add('rain');
-            } else if (weatherType === 'snow') {
-                document.getElementById('w-snow').classList.add('active');
-                layer.classList.add('snow');
-            } else {
-                document.getElementById('w-sun').classList.add('active');
+        function resizeCanvas() { if (canvas) { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; } }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 150);
+
+        function createParticles() {
+            particles = [];
+            const count = currentSimulationWeather === 'rain' ? 60 : 45;
+            for(let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: currentSimulationWeather === 'rain' ? (4 + Math.random() * 4) : (1 + Math.random() * 1.5),
+                    radius: currentSimulationWeather === 'rain' ? (1 + Math.random() * 0.5) : (1.5 + Math.random() * 2),
+                    drift: Math.random() * 0.5 - 0.25,
+                    length: 15 + Math.random() * 15
+                });
             }
         }
 
+        function updateWeatherEngine() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (currentSimulationWeather !== 'sun') {
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    if (currentSimulationWeather === 'rain') {
+                        ctx.strokeStyle = 'rgba(174,219,255,0.7)'; ctx.lineWidth = p.radius;
+                        ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.drift, p.y + p.length); ctx.stroke();
+                    } else {
+                        ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                    }
+                    if (isScreenPressed) { p.y += (Math.random() * 0.4 - 0.2); p.x += (Math.random() * 0.4 - 0.2); }
+                    else { p.y += p.speed; p.x += p.drift; }
+                    if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+                });
+            }
+            requestAnimationFrame(updateWeatherEngine);
+        }
+        requestAnimationFrame(updateWeatherEngine);
+
+        function setWeather(weatherType) {
+            triggerHaptic(); currentSimulationWeather = weatherType;
+            localStorage.setItem('sim_weather', weatherType);
+            document.querySelectorAll('.w-btn').forEach(btn => btn.classList.remove('active'));
+            if (weatherType === 'rain') document.getElementById('w-rain').classList.add('active');
+            else if (weatherType === 'snow') document.getElementById('w-snow').classList.add('active');
+            else document.getElementById('w-sun').classList.add('active');
+            createParticles();
+        }
+
         function openModal(type) {
-            playClickSound(); triggerHaptic();
-            activeModalType = type;
+            playClickSound(); triggerHaptic(); activeModalType = type;
             document.getElementById('modalTypeTitle').innerText = type === 'task' ? 'Новая одноразовая задача' : 'Новая ежедневная привычка';
             document.getElementById('modalTextInput').value = '';
             document.getElementById('modalInputOverlay').style.display = 'flex';
         }
-
         function closeModal() { playClickSound(); document.getElementById('modalInputOverlay').style.display = 'none'; }
 
         function saveModalItem() {
@@ -343,90 +363,52 @@
             else habits.push({ text: input.value, done: false });
             closeModal(); saveAndRender();
         }
+
         function updateTimeTheme() {
             if (currentTheme !== "default") return;
-            const hour = new Date().getHours();
-            const body = document.body;
-            body.className = ""; 
-            if (hour < 6 || hour >= 18) {
-                body.classList.add('night-theme');
-                body.style.backgroundColor = "#2c2c2c";
-            } else {
-                body.style.backgroundColor = "#fff5eb";
-            }
+            const hour = new Date().getHours(); const body = document.body; body.className = ""; 
+            if (hour < 6 || hour >= 18) { body.classList.add('night-theme'); body.style.backgroundColor = "#2c2c2c"; }
+            else { body.style.backgroundColor = "#fff5eb"; }
         }
 
         function applyPromo() {
-            const input = document.getElementById('promoInput');
-            const code = input.value.trim().toUpperCase();
-            
+            const input = document.getElementById('promoInput'); const code = input.value.trim().toUpperCase();
             if (code === "OPEN777") {
-                streak = 21;
-                unlockedThemes = ["default", "forest", "lake", "space", "mountain", "cat"];
-                localStorage.setItem('habit_streak', streak);
-                localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
+                streak = 21; unlockedThemes = ["default", "forest", "lake", "space", "mountain", "cat"];
+                localStorage.setItem('habit_streak', streak); localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
                 playSound(900, 0.2, 'sine');
                 try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e) {}
                 alert("Универсальный чит-код активирован! Все медали и рубашки разблокированы навсегда 🔓");
-                saveAndRender();
-                updateShopUI();
-                input.value = "";
-                return;
+                saveAndRender(); updateShopUI(); input.value = ""; return;
             }
-
             if (code === "RESET777") {
-                streak = 0;
-                currentTheme = "default";
-                unlockedThemes = ["default"];
-                localStorage.setItem('habit_streak', streak);
-                localStorage.setItem('selected_theme', currentTheme);
-                localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
-                playSound(300, 0.3, 'sawtooth');
-                alert("Данные сброшены в исходное состояние.");
-                applyThemeStyles();
-                saveAndRender();
-                updateShopUI();
-                input.value = "";
-                return;
+                streak = 0; currentTheme = "default"; unlockedThemes = ["default"];
+                localStorage.setItem('habit_streak', streak); localStorage.setItem('selected_theme', currentTheme); localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
+                playSound(300, 0.3, 'sawtooth'); alert("Данные сброшены в исходное состояние.");
+                applyThemeStyles(); saveAndRender(); updateShopUI(); input.value = ""; return;
             }
-
-            alert("Неверный чит-код! Используйте OPEN777 или RESET777.");
-            input.value = "";
+            alert("Неверный чит-код! Используйте OPEN777 или RESET777."); input.value = "";
         }
 
         function selectTheme(themeId) {
             playClickSound(); triggerHaptic();
-            if (!unlockedThemes.includes(themeId)) {
-                alert("Эта рубашка закрыта! Введите чит-код разработчика.");
-                return;
-            }
-            currentTheme = themeId;
-            localStorage.setItem('selected_theme', currentTheme);
-            applyThemeStyles();
-            updateShopUI();
+            if (!unlockedThemes.includes(themeId)) { alert("Эта рубашка закрыта! Введите чит-код разработчика."); return; }
+            currentTheme = themeId; localStorage.setItem('selected_theme', currentTheme); applyThemeStyles(); updateShopUI();
         }
 
         function applyThemeStyles() {
-            const body = document.body;
-            body.className = ""; body.style.backgroundColor = "";
-            if (currentTheme === "default") updateTimeTheme();
-            else body.classList.add('theme-' + currentTheme);
+            const body = document.body; body.className = ""; body.style.backgroundColor = "";
+            if (currentTheme === "default") updateTimeTheme(); else body.classList.add('theme-' + currentTheme);
             changeContainerOpacity();
         }
 
         function updateShopUI() {
             const items = ["default", "forest", "lake", "space", "mountain", "cat"];
             items.forEach(id => {
-                const el = document.getElementById('item-' + id);
-                if (!el) return;
-                el.classList.remove('active');
-                const statusEl = document.getElementById('status-' + id);
+                const el = document.getElementById('item-' + id); if (!el) return;
+                el.classList.remove('active'); const statusEl = document.getElementById('status-' + id);
                 if (statusEl) statusEl.innerText = unlockedThemes.includes(id) ? "🔓 Доступно" : "🔒 Заблокировано";
-                if (id === currentTheme) {
-                    el.classList.add('active');
-                    const currentStatus = el.querySelector('.status');
-                    if (currentStatus) currentStatus.innerText = "Активна";
-                }
+                if (id === currentTheme) { el.classList.add('active'); const currentStatus = el.querySelector('.status'); if (currentStatus) currentStatus.innerText = "Активна"; }
             });
         }
 
@@ -439,20 +421,13 @@
 
         function checkHabitsStreak() {
             if (habits.length === 0) return;
-            const allDone = habits.every(h => h.done);
-            const todayStr = new Date().toDateString();
-            if (allDone && lastCheckDate !== todayStr) {
-                streak++;
-                lastCheckDate = todayStr;
-                localStorage.setItem('habit_streak', streak);
-                localStorage.setItem('last_check_date', lastCheckDate);
-            }
+            const allDone = habits.every(h => h.done); const todayStr = new Date().toDateString();
+            if (allDone && lastCheckDate !== todayStr) { streak++; lastCheckDate = todayStr; localStorage.setItem('habit_streak', streak); localStorage.setItem('last_check_date', lastCheckDate); }
         }
 
         function deleteItem(type, index) {
             playSound(300, 0.1, 'sawtooth'); triggerHaptic();
-            if (type === 'task') tasks.splice(index, 1);
-            else habits.splice(index, 1);
+            if (type === 'task') tasks.splice(index, 1); else habits.splice(index, 1);
             saveAndRender();
         }
 
@@ -475,25 +450,19 @@
                     hList.appendChild(li);
                 });
             }
-            const streakDisplay = document.getElementById('streakDisplay');
-            if (streakDisplay) streakDisplay.innerText = `🔥 Серия постоянства: ${streak} дней`;
+            const streakDisplay = document.getElementById('streakDisplay'); if (streakDisplay) streakDisplay.innerText = `🔥 Серия постоянства: ${streak} дней`;
             const b3 = document.getElementById('badge3'); if (b3) b3.classList.toggle('active', streak >= 3);
             const b7 = document.getElementById('badge7'); if (b7) b7.classList.toggle('active', streak >= 7);
             const b21 = document.getElementById('badge21'); if (b21) b21.classList.toggle('active', streak >= 21);
         }
 
         function saveAndRender() {
-            localStorage.setItem('tracker_tasks', JSON.stringify(tasks));
-            localStorage.setItem('tracker_habits', JSON.stringify(habits));
+            localStorage.setItem('tracker_tasks', JSON.stringify(tasks)); localStorage.setItem('tracker_habits', JSON.stringify(habits));
             render();
         }
 
         document.getElementById('opacitySlider').value = savedOpacity;
-        loadTelegramUser();
-        setWeather(currentSimulationWeather);
-        applyThemeStyles();
-        updateShopUI();
-        render();
+        loadTelegramUser(); setWeather(currentSimulationWeather); applyThemeStyles(); updateShopUI(); render();
     </script>
 </body>
 </html>
