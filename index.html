@@ -69,7 +69,7 @@
         body.theme-forest .setting-row input[type="range"] { accent-color: #386b40; }
         body.theme-forest .setting-row input[type="range"]::-webkit-slider-thumb { background: #386b40; }
 
-        body.theme-lake { background: url('https://pinimg.com'); }
+        body.theme-lake { background: url('./lake.png'); }
         body.theme-lake .container { background: rgba(239, 251, 249, 0.95); border: 2px solid #4fa4a5; box-shadow: 0 8px 32px rgba(79,164,165,0.25); }
         body.theme-lake .tab-title { color: #2e6162; }
         body.theme-lake .nav-btn.active { color: #4fa4a5; background: rgba(79,164,165,0.08); }
@@ -78,7 +78,7 @@
         body.theme-lake .setting-row input[type="range"] { accent-color: #4fa4a5; }
         body.theme-lake .setting-row input[type="range"]::-webkit-slider-thumb { background: #4fa4a5; }
 
-        body.theme-space { background: url('https://magnific.com'); }
+        body.theme-space { background: url('./space.png'); }
         body.theme-space .container { background: rgba(24, 20, 36, 0.93); border: 2px solid #bb86fc; color: white; animation: neonGlow 4s infinite; }
         body.theme-space .tab-title, body.theme-space .task-text, body.theme-space .streak-info, body.theme-space label { color: #bb86fc; }
         body.theme-space .nav-btn { color: #555; }
@@ -91,7 +91,7 @@
         body.theme-space .setting-row input[type="range"] { accent-color: #bb86fc; background-color: #252036 !important; }
         body.theme-space .setting-row input[type="range"]::-webkit-slider-thumb { background: #bb86fc; }
 
-        body.theme-mountain { background: url('https://istockphoto.com'); }
+        body.theme-mountain { background: url('./mountain.png'); }
         body.theme-mountain .container { background: rgba(248, 249, 250, 0.95); border: 2px solid #5a6268; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
         body.theme-mountain .tab-title { color: #343a40; }
         body.theme-mountain .nav-btn.active { color: #5a6268; background: rgba(90,98,104,0.08); }
@@ -100,7 +100,7 @@
         body.theme-mountain .setting-row input[type="range"] { accent-color: #5a6268; }
         body.theme-mountain .setting-row input[type="range"]::-webkit-slider-thumb { background: #5a6268; }
 
-        body.theme-cat { background: url('https://yandex.net'); }
+        body.theme-cat { background: url('./cat.png'); }
         body.theme-cat .container { background: rgba(58, 39, 29, 0.93); border: 2px solid #ff9933; color: #ffebcc; animation: cozyGlow 4s infinite; }
         body.theme-cat .tab-title, body.theme-cat .task-text, body.theme-cat h3, body.theme-cat label { color: #ffcc99; }
         body.theme-cat .nav-btn { color: #8c6d62; }
@@ -200,8 +200,6 @@
         let unlockedThemes = JSON.parse(localStorage.getItem('unlocked_themes')) || ["default"];
         let activeModalType = '';
 
-        const codes = { "FOREST777": "forest", "LAKE777": "lake", "SPACE777": "space", "MOUNTAIN777": "mountain", "CAT777": "cat" };
-
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playSound(frequency, duration, type = 'sine') {
@@ -292,30 +290,39 @@
         function applyPromo() {
             const input = document.getElementById('promoInput');
             const code = input.value.trim().toUpperCase();
-            if (code === "STREAK3" || code === "STREAK7" || code === "STREAK21" || code === "STREAK0") {
-                if (code === "STREAK3") streak = 3;
-                if (code === "STREAK7") streak = 7;
-                if (code === "STREAK21") streak = 21;
-                if (code === "STREAK0") streak = 0;
+            
+            // ЕДИНСТВЕННЫЙ СУПЕР ЧИТ-КОД НА ОТКРЫТИЕ ВСЕГО СРАЗУ
+            if (code === "OPEN777") {
+                streak = 21; // Максимальная серия дней
+                unlockedThemes = ["default", "forest", "lake", "space", "mountain", "cat"]; // Открыть все темы
                 localStorage.setItem('habit_streak', streak);
+                localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
                 playSound(900, 0.2, 'sine');
-                alert(`Чит-код активирован! Серия привычек: ${streak} дн.`);
-                render();
+                alert("Универсальный чит-код активирован! Все медали и рубашки разблокированы навсегда 🔓");
+                saveAndRender();
+                updateShopUI();
                 input.value = "";
                 return;
             }
-            if (codes[code]) {
-                const themeId = codes[code];
-                if (!unlockedThemes.includes(themeId)) {
-                    unlockedThemes.push(themeId);
-                    localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
-                    playSound(900, 0.2, 'sine');
-                    alert("Чит-код активирован! Рубашка разблокирована.");
-                    updateShopUI();
-                }
-            } else {
-                alert("Неверный чит-код!");
+
+            // ЧИТ-КОД ПОЛНОГО СБРОСА ДЛЯ СЛУЖЕБНЫХ ТЕСТОВ
+            if (code === "RESET777") {
+                streak = 0;
+                currentTheme = "default";
+                unlockedThemes = ["default"];
+                localStorage.setItem('habit_streak', streak);
+                localStorage.setItem('selected_theme', currentTheme);
+                localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
+                playSound(300, 0.3, 'sawtooth');
+                alert("Данные сброшены в исходное состояние.");
+                applyThemeStyles();
+                saveAndRender();
+                updateShopUI();
+                input.value = "";
+                return;
             }
+
+            alert("Неверный чит-код! Используйте OPEN777 или RESET777.");
             input.value = "";
         }
 
@@ -392,25 +399,31 @@
 
         function render() {
             const tList = document.getElementById('taskList');
-            tList.innerHTML = '';
-            tasks.forEach((task, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleItem('task', ${index})"><span class="task-text ${task.done ? 'completed' : ''}">${task.text}</span><button class="del-btn" onclick="deleteItem('task', ${index})">Х</button>`;
-                tList.appendChild(li);
-            });
+            if (tList) {
+                tList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleItem('task', ${index})"><span class="task-text ${task.done ? 'completed' : ''}">${task.text}</span><button class="del-btn" onclick="deleteItem('task', ${index})">Х</button>`;
+                    tList.appendChild(li);
+                });
+            }
 
             const hList = document.getElementById('habitList');
-            hList.innerHTML = '';
-            habits.forEach((habit, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<input type="checkbox" ${habit.done ? 'checked' : ''} onclick="toggleItem('habit', ${index})"><span class="task-text ${habit.done ? 'completed' : ''}">${habit.text}</span><button class="del-btn" onclick="deleteItem('habit', ${index})">Х</button>`;
-                hList.appendChild(li);
-            });
+            if (hList) {
+                hList.innerHTML = '';
+                habits.forEach((habit, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<input type="checkbox" ${habit.done ? 'checked' : ''} onclick="toggleItem('habit', ${index})"><span class="task-text ${habit.done ? 'completed' : ''}">${habit.text}</span><button class="del-btn" onclick="deleteItem('habit', ${index})">Х</button>`;
+                    hList.appendChild(li);
+                });
+            }
 
-            document.getElementById('streakDisplay').innerText = `🔥 Серия постоянства: ${streak} дней`;
-            document.getElementById('badge3').classList.toggle('active', streak >= 3);
-            document.getElementById('badge7').classList.toggle('active', streak >= 7);
-            document.getElementById('badge21').classList.toggle('active', streak >= 21);
+            const streakDisplay = document.getElementById('streakDisplay');
+            if (streakDisplay) streakDisplay.innerText = `🔥 Серия постоянства: ${streak} дней`;
+            
+            const b3 = document.getElementById('badge3'); if (b3) b3.classList.toggle('active', streak >= 3);
+            const b7 = document.getElementById('badge7'); if (b7) b7.classList.toggle('active', streak >= 7);
+            const b21 = document.getElementById('badge21'); if (b21) b21.classList.toggle('active', streak >= 21);
         }
 
         function saveAndRender() {
