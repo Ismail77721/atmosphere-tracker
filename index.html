@@ -5,112 +5,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Атмосферный трекер</title>
     <style>
-        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 30px; transition: background 0.5s, color 0.5s; }
-        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); width: 320px; }
-        h1 { font-size: 20px; color: #ff8c42; text-align: center; margin-top: 0; }
+        @keyframes spacePulse { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+        @keyframes neonGlow { 0%, 100% { box-shadow: 0 0 15px #bb86fc; } 50% { box-shadow: 0 0 35px #6f42c1; } }
+        @keyframes cozyGlow { 0%, 100% { box-shadow: 0 0 15px #ffb366; } 50% { box-shadow: 0 0 35px #ff8000; } }
+
+        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 30px; transition: all 0.5s ease; min-height: 100vh; margin: 0; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; image-rendering: -webkit-optimize-contrast; }
+        .container { background: rgba(255, 255, 255, 0.93); padding: 20px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); width: 320px; transition: all 0.5s ease; position: relative; overflow: hidden; height: fit-content; margin-bottom: 30px; backdrop-filter: blur(4px); }
+        
+        h1 { font-size: 20px; color: #ff8c42; text-align: center; margin-top: 0; transition: color 0.5s; }
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ffcc99; border-radius: 8px; outline: none; font-size: 14px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ffcc99; border-radius: 8px; outline: none; font-size: 14px; background: white; color: #333; }
         .add-btn { background: #ff8c42; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
         .add-btn:hover { background: #e0732f; }
+        
         ul { list-style: none; padding: 0; margin: 0 0 20px 0; }
-        li { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
-        .task-text { flex: 1; margin-left: 10px; font-size: 15px; word-break: break-word; }
-        .completed { text-decoration: line-through; color: #aaa; }
+        li { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eef2f5; }
+        .task-text { flex: 1; margin-left: 10px; font-size: 15px; word-break: break-word; color: #333; }
+        .completed { text-decoration: line-through; color: #aaa !important; }
         .del-btn { background: #ff4d4d; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; }
         
-        .streak-info { text-align: center; font-weight: bold; font-size: 16px; color: #333; margin-bottom: 15px; background: #fff2e6; padding: 8px; border-radius: 8px; }
-        .achievements { border-top: 2px dashed #ffcc99; padding-top: 15px; }
-        .achievements h3 { font-size: 15px; color: #666; margin: 0 0 10px 0; text-align: center; }
+        .streak-info { text-align: center; font-weight: bold; font-size: 16px; color: #333; margin-bottom: 15px; background: #fff2e6; padding: 8px; border-radius: 8px; transition: all 0.5s; }
+        .achievements, .shop-section { border-top: 2px dashed #ffcc99; padding-top: 15px; margin-top: 15px; }
+        .achievements h3, .shop-section h3 { font-size: 15px; color: #666; margin: 0 0 10px 0; text-align: center; }
+        
         .badge-container { display: flex; justify-content: space-around; }
         .badge { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #888; font-weight: bold; text-align: center; width: 80px; }
         .badge-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: #e0e0e0; filter: grayscale(1); margin-bottom: 5px; border: 2px solid #ccc; transition: all 0.3s; }
-        .badge.active .badge-icon { filter: grayscale(0); background: white; border-color: #ff8c42; box-shadow: 0 4px 8px rgba(255,140,66,0.2); }
-        .badge.active { color: #333; }
+        .badge.active .badge-icon { filter: grayscale(0); background: white; border-color: #ff8c42; box-shadow: 0 4px 8px rgba(255,140,66,0.15); }
         
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .shop-item { border: 1px solid #eee; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.3s; background: #fafafa; font-weight: bold; color: #333; }
+        .shop-item.active { border-color: #ff8c42; background: #fff9f5; }
+        .shop-item .status { font-size: 10px; color: #888; margin-top: 4px; display: block; }
+        
+        .promo-group { display: flex; gap: 5px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .promo-input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; flex: 1; text-transform: uppercase; }
+        .promo-btn { background: #555; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        body.theme-forest { background: url('https://pinimg.com'); }
+        body.theme-forest .container { background: rgba(244, 249, 244, 0.95); border: 2px solid #386b40; box-shadow: 0 8px 32px rgba(19,38,21,0.3); }
+        body.theme-forest h1 { color: #1b331e; }
+
+        body.theme-lake { background: url('https://pinimg.com'); }
+        body.theme-lake .container { background: rgba(239, 251, 249, 0.95); border: 2px solid #4fa4a5; box-shadow: 0 8px 32px rgba(79,164,165,0.25); }
+        body.theme-lake h1 { color: #2e6162; }
+
+        body.theme-space { background: url('https://magnific.com'); }
+        body.theme-space .container { background: rgba(24, 20, 36, 0.93); border: 2px solid #bb86fc; color: white; animation: neonGlow 4s infinite; }
+        body.theme-space h1, body.theme-space .task-text, body.theme-space h3, body.theme-space .streak-info { color: #bb86fc; }
+        body.theme-space input[type="text"] { background: #252036; color: white; border-color: #6f42c1; }
+        body.theme-space .streak-info { background: #252036; }
+        body.theme-space li { border-color: #2e2842; }
+
+        body.theme-mountain { background: url('https://istockphoto.com'); }
+        body.theme-mountain .container { background: rgba(248, 249, 250, 0.95); border: 2px solid #5a6268; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+        body.theme-mountain h1 { color: #343a40; }
+
+        body.theme-cat { background: url('https://yandex.net'); }
+        body.theme-cat .container { background: rgba(58, 39, 29, 0.93); border: 2px solid #ff9933; color: #ffebcc; animation: cozyGlow 4s infinite; }
+        body.theme-cat h1, body.theme-cat .task-text, body.theme-cat h3 { color: #ffcc99; }
+        body.theme-cat input[type="text"] { background: #241812; color: white; border-color: #ff9933; }
+        body.theme-cat .streak-info { background: #241812; color: #ffcc99; }
+        body.theme-cat li { border-color: #4f3629; }
+
         body.night-theme { background: #2c2c2c !important; color: #ffffff; }
         body.night-theme .container { background: #3d3d3d; color: #ffffff; }
         body.night-theme h1 { color: #ffaa66; }
         body.night-theme .streak-info { background: #4a4a4a; color: #fff; }
         body.night-theme li { border-color: #4a4a4a; }
         body.night-theme .task-text { color: #fff; }
-        body.night-theme .completed { color: #777; }
-        body.night-theme input[type="text"] { background: #555; border-color: #666; color: #fff; }
-        body.night-theme .achievements h3 { color: #bbb; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 id="mainTitle">Атмосферный трекер</h1>
-        
+        <h1>Атмосферный трекер</h1>
         <div class="streak-info" id="streakDisplay">🔥 Серия постоянства: 0 дней</div>
-
         <div class="input-group">
             <input type="text" id="taskInput" placeholder="Новая привычка...">
             <button class="add-btn" onclick="addTask()">Добавить</button>
         </div>
-        
         <ul id="taskList"></ul>
-
         <div class="achievements">
             <h3>Мои достижения</h3>
             <div class="badge-container">
-                <div class="badge" id="badge3">
-                    <div class="badge-icon">🥉</div>
-                    Бронза (3 дн.)
-                </div>
-                <div class="badge" id="badge7">
-                    <div class="badge-icon">🥈</div>
-                    Серебро (7 дн.)
-                </div>
-                <div class="badge" id="badge21">
-                    <div class="badge-icon">🥇</div>
-                    Золото (21 дн.)
-                </div>
+                <div class="badge" id="badge3"><div class="badge-icon">🥉</div>Бронза (3 дн.)</div>
+                <div class="badge" id="badge7"><div class="badge-icon">🥈</div>Серебро (7 дн.)</div>
+                <div class="badge" id="badge21"><div class="badge-icon">🥇</div>Золото (21 дн.)</div>
             </div>
         </div>
+        <div class="shop-section">
+            <h3>Рубашки интерфейса</h3>
+            <div class="shop-grid">
+                <div class="shop-item active" id="item-default" onclick="selectTheme('default')">Стандартная<span class="status">Активна</span></div>
+                <div class="shop-item" id="item-forest" onclick="selectTheme('forest')">Лес 🌲<span class="status" id="status-forest">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-lake" onclick="selectTheme('lake')">Озеро 🌊<span class="status" id="status-lake">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-space" onclick="selectTheme('space')">Космос 🌌<span class="status" id="status-space">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-mountain" onclick="selectTheme('mountain')">Горы 🏔️<span class="status" id="status-mountain">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-cat" onclick="selectTheme('cat')">Уютная комната 🐈‍⬛<span class="status" id="status-cat">🔒 Заблокировано</span></div>
+            </div>
+        </div>
+        <div class="promo-group">
+            <input type="text" id="promoInput" class="promo-input" placeholder="Чит-код разработчика">
+            <button class="promo-btn" onclick="applyPromo()">Ввод</button>
+        </div>
     </div>
-
     <script>
         let habits = JSON.parse(localStorage.getItem('habits')) || [];
         let streak = parseInt(localStorage.getItem('habit_streak')) || 0;
         let lastCheckDate = localStorage.getItem('last_check_date') || "";
+        let currentTheme = localStorage.getItem('selected_theme') || "default";
+        let unlockedThemes = JSON.parse(localStorage.getItem('unlocked_themes')) || ["default"];
+
+        const codes = { "FOREST777": "forest", "LAKE777": "lake", "SPACE777": "space", "MOUNTAIN777": "mountain", "CAT777": "cat" };
 
         function updateTimeTheme() {
+            if (currentTheme !== "default") return;
             const hour = new Date().getHours();
             const body = document.body;
-            
-            body.classList.remove('night-theme');
-            
-            if (hour >= 6 && hour < 12) {
-                body.style.backgroundColor = "#ffe6cc";
-            } else if (hour >= 12 && hour < 18) {
-                body.style.backgroundColor = "#fff5eb";
-            } else if (hour >= 18 && hour < 24) {
-                body.style.backgroundColor = "#ffcc99";
-            } else {
-                body.style.backgroundColor = "#2c2c2c";
+            body.className = ""; 
+            if (hour < 6 || hour >= 18) {
                 body.classList.add('night-theme');
+                body.style.backgroundColor = "#2c2c2c";
+            } else {
+                body.style.backgroundColor = "#fff5eb";
             }
         }
 
-        function checkStreakLogic() {
-            if (lastCheckDate === "") return;
-            const todayStr = new Date().toDateString();
-            const lastDate = new Date(lastCheckDate);
-            const today = new Date(todayStr);
-            const diffTime = Math.abs(today - lastDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays > 1 && lastCheckDate !== todayStr) {
-                streak = 0;
+        function applyPromo() {
+            const input = document.getElementById('promoInput');
+            const code = input.value.trim().toUpperCase();
+            if (code === "STREAK3" || code === "STREAK7" || code === "STREAK21" || code === "STREAK0") {
+                if (code === "STREAK3") streak = 3;
+                if (code === "STREAK7") streak = 7;
+                if (code === "STREAK21") streak = 21;
+                if (code === "STREAK0") streak = 0;
                 localStorage.setItem('habit_streak', streak);
+                alert(`Чит-код активирован! Серия установлена на: ${streak} дн.`);
+                render();
+                input.value = "";
+                return;
             }
+            if (codes[code]) {
+                const themeId = codes[code];
+                if (!unlockedThemes.includes(themeId)) {
+                    unlockedThemes.push(themeId);
+                    localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
+                    alert("Чит-код успешно активирован! Тема разблокирована.");
+                    updateShopUI();
+                }
+            } else {
+                alert("Неверный чит-код!");
+            }
+            input.value = "";
+        }
+
+        function selectTheme(themeId) {
+            if (!unlockedThemes.includes(themeId)) {
+                alert("Эта рубашка заблокирована! Введите чит-код для проверки.");
+                return;
+            }
+            currentTheme = themeId;
+            localStorage.setItem('selected_theme', currentTheme);
+            applyThemeStyles();
+            updateShopUI();
+        }
+
+        function applyThemeStyles() {
+            const body = document.body;
+            body.className = "";
+            body.style.backgroundColor = "";
+            if (currentTheme === "default") {
+                updateTimeTheme();
+            } else {
+                body.classList.add('theme-' + currentTheme);
+            }
+        }
+
+        function updateShopUI() {
+            const items = ["default", "forest", "lake", "space", "mountain", "cat"];
+            items.forEach(id => {
+                const el = document.getElementById('item-' + id);
+                if (!el) return;
+                el.classList.remove('active');
+                const statusEl = document.getElementById('status-' + id);
+                if (statusEl) {
+                    statusEl.innerText = unlockedThemes.includes(id) ? "🔓 Доступно" : "🔒 Заблокировано";
+                }
+                if (id === currentTheme) {
+                    el.classList.add('active');
+                    const currentStatus = el.querySelector('.status');
+                    if (currentStatus) currentStatus.innerText = "Активна";
+                }
+            });
         }
 
         function render() {
             const list = document.getElementById('taskList');
+            if (!list) return;
             list.innerHTML = '';
-            
             habits.forEach((habit, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `
@@ -120,7 +212,6 @@
                 `;
                 list.appendChild(li);
             });
-
             document.getElementById('streakDisplay').innerText = `🔥 Серия постоянства: ${streak} дней`;
             document.getElementById('badge3').classList.toggle('active', streak >= 3);
             document.getElementById('badge7').classList.toggle('active', streak >= 7);
@@ -137,21 +228,13 @@
 
         function toggleHabit(index) {
             habits[index].done = !habits[index].done;
-            checkAllTasksCompleted();
-            saveAndRender();
-        }
-
-        function checkAllTasksCompleted() {
-            if (habits.length === 0) return;
-            const allDone = habits.every(h => h.done);
-            const todayStr = new Date().toDateString();
-            
-            if (allDone && lastCheckDate !== todayStr) {
+            if (habits.every(h => h.done) && habits.length > 0 && lastCheckDate !== new Date().toDateString()) {
                 streak++;
-                lastCheckDate = todayStr;
+                lastCheckDate = new Date().toDateString();
                 localStorage.setItem('habit_streak', streak);
                 localStorage.setItem('last_check_date', lastCheckDate);
             }
+            saveAndRender();
         }
 
         function deleteHabit(index) {
@@ -164,9 +247,8 @@
             render();
         }
 
-        updateTimeTheme();
-        setInterval(updateTimeTheme, 5000);
-        checkStreakLogic();
+        applyThemeStyles();
+        updateShopUI();
         render();
     </script>
 </body>
