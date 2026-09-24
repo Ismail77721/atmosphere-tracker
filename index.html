@@ -13,7 +13,7 @@
         body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 20px; transition: all 0.5s ease; min-height: 100vh; margin: 0; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; image-rendering: -webkit-optimize-contrast; position: relative; }
         #brightnessMask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; opacity: 0; pointer-events: none; z-index: 9999; transition: opacity 0.1s; }
 
-        .container { background: rgba(255, 255, 255, 0.93); padding: 20px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); width: 320px; transition: all 0.5s ease; position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; backdrop-filter: blur(4px); margin-bottom: 50px; }
+        .container { background: rgba(255, 255, 255, 0.93); padding: 20px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); width: 320px; transition: background 0.3s ease, border 0.5s ease, box-shadow 0.5s ease; position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; backdrop-filter: blur(4px); margin-bottom: 50px; }
         .tab-title { font-size: 22px; font-weight: bold; color: #ff8c42; margin-top: 0; margin-bottom: 20px; text-align: left; transition: color 0.5s; }
         
         .tab-content { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; position: relative; }
@@ -48,9 +48,9 @@
         .badge.active .badge-icon { filter: grayscale(0); background: white; border-color: #ff8c42; box-shadow: 0 4px 8px rgba(255,140,66,0.15); }
         .badge.active { color: #333; }
 
-        .setting-row { margin-bottom: 18px; background: transparent !important; }
-        .setting-row label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 6px; background: transparent !important; }
-        .setting-row input[type="range"] { width: 100%; accent-color: #ff8c42; background: transparent !important; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background-color: #ddd !important; outline: none; margin: 10px 0; }
+        .setting-row { margin-bottom: 15px; background: transparent !important; }
+        .setting-row label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 4px; background: transparent !important; }
+        .setting-row input[type="range"] { width: 100%; accent-color: #ff8c42; background: transparent !important; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background-color: #ddd !important; outline: none; margin: 8px 0; }
         .setting-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #ff8c42; cursor: pointer; margin-top: -5px; }
 
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -61,7 +61,6 @@
         .promo-input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; flex: 1; text-transform: uppercase; }
         .promo-btn { background: #555; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
         body.theme-forest { background: url('https://pinimg.com'); }
-        body.theme-forest .container { background: rgba(244, 249, 244, 0.95); border: 2px solid #386b40; box-shadow: 0 8px 32px rgba(19,38,21,0.3); }
         body.theme-forest .tab-title { color: #1b331e; }
         body.theme-forest .nav-btn.active { color: #386b40; background: rgba(56,107,64,0.08); }
         body.theme-forest .nav-btn.active .nav-label { color: #386b40; }
@@ -70,7 +69,6 @@
         body.theme-forest .setting-row input[type="range"]::-webkit-slider-thumb { background: #386b40; }
 
         body.theme-lake { background: url('./lake.png'); }
-        body.theme-lake .container { background: rgba(239, 251, 249, 0.95); border: 2px solid #4fa4a5; box-shadow: 0 8px 32px rgba(79,164,165,0.25); }
         body.theme-lake .tab-title { color: #2e6162; }
         body.theme-lake .nav-btn.active { color: #4fa4a5; background: rgba(79,164,165,0.08); }
         body.theme-lake .nav-btn.active .nav-label { color: #4fa4a5; }
@@ -79,7 +77,7 @@
         body.theme-lake .setting-row input[type="range"]::-webkit-slider-thumb { background: #4fa4a5; }
 
         body.theme-space { background: url('./space.png'); }
-        body.theme-space .container { background: rgba(24, 20, 36, 0.93); border: 2px solid #bb86fc; color: white; animation: neonGlow 4s infinite; }
+        body.theme-space .container { animation: neonGlow 4s infinite; }
         body.theme-space .tab-title, body.theme-space .task-text, body.theme-space .streak-info, body.theme-space label { color: #bb86fc; }
         body.theme-space .nav-btn { color: #555; }
         body.theme-space .nav-btn.active { color: #bb86fc; background: rgba(187,134,252,0.1); }
@@ -92,7 +90,6 @@
         body.theme-space .setting-row input[type="range"]::-webkit-slider-thumb { background: #bb86fc; }
 
         body.theme-mountain { background: url('./mountain.png'); }
-        body.theme-mountain .container { background: rgba(248, 249, 250, 0.95); border: 2px solid #5a6268; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
         body.theme-mountain .tab-title { color: #343a40; }
         body.theme-mountain .nav-btn.active { color: #5a6268; background: rgba(90,98,104,0.08); }
         body.theme-mountain .nav-btn.active .nav-label { color: #5a6268; }
@@ -101,7 +98,7 @@
         body.theme-mountain .setting-row input[type="range"]::-webkit-slider-thumb { background: #5a6268; }
 
         body.theme-cat { background: url('./cat.png'); }
-        body.theme-cat .container { background: rgba(58, 39, 29, 0.93); border: 2px solid #ff9933; color: #ffebcc; animation: cozyGlow 4s infinite; }
+        body.theme-cat .container { animation: cozyGlow 4s infinite; }
         body.theme-cat .tab-title, body.theme-cat .task-text, body.theme-cat h3, body.theme-cat label { color: #ffcc99; }
         body.theme-cat .nav-btn { color: #8c6d62; }
         body.theme-cat .nav-btn.active { color: #ff9933; background: rgba(255,153,51,0.1); }
@@ -123,7 +120,7 @@
 </head>
 <body>
     <div id="brightnessMask"></div>
-    <div class="container">
+    <div class="container" id="mainContainer">
         
         <div class="modal-overlay" id="modalInputOverlay">
             <div class="modal-card">
@@ -164,6 +161,11 @@
                 <label>Яркость</label>
                 <input type="range" id="brightnessSlider" min="0" max="80" value="80" oninput="changeBrightness()">
             </div>
+            <!-- НОВЫЙ ПОЛЗУНОК ПРОЗРАЧНОСТИ КАРТОЧКИ -->
+            <div class="setting-row">
+                <label>Прозрачность карточки</label>
+                <input type="range" id="opacitySlider" min="10" max="100" value="93" oninput="changeContainerOpacity()">
+            </div>
             <div class="setting-row">
                 <label>Громкость</label>
                 <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="testVolumeSound()">
@@ -198,7 +200,10 @@
         let lastCheckDate = localStorage.getItem('last_check_date') || "";
         let currentTheme = localStorage.getItem('selected_theme') || "default";
         let unlockedThemes = JSON.parse(localStorage.getItem('unlocked_themes')) || ["default"];
+        let savedOpacity = parseInt(localStorage.getItem('container_opacity')) || 93;
         let activeModalType = '';
+
+        const codes = { "FOREST777": "forest", "LAKE777": "lake", "SPACE777": "space", "MOUNTAIN777": "mountain", "CAT777": "cat" };
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -248,6 +253,28 @@
             mask.style.opacity = (80 - slider.value) / 100;
         }
 
+        // РЕГУЛИРОВКА ПРОЗРАЧНОСТИ КАРТОЧКИ
+        function changeContainerOpacity() {
+            const slider = document.getElementById('opacitySlider');
+            const container = document.getElementById('mainContainer');
+            const val = slider.value;
+            localStorage.setItem('container_opacity', val);
+            
+            if (currentTheme === "space") {
+                container.style.background = `rgba(24, 20, 36, ${val / 100})`;
+            } else if (currentTheme === "cat") {
+                container.style.background = `rgba(58, 39, 29, ${val / 100})`;
+            } else if (currentTheme === "forest") {
+                container.style.background = `rgba(244, 249, 244, ${val / 100})`;
+            } else if (currentTheme === "lake") {
+                container.style.background = `rgba(239, 251, 249, ${val / 100})`;
+            } else if (currentTheme === "mountain") {
+                container.style.background = `rgba(248, 249, 250, ${val / 100})`;
+            } else {
+                container.style.background = `rgba(255, 255, 255, ${val / 100})`;
+            }
+        }
+
         function openModal(type) {
             playClickSound();
             activeModalType = type;
@@ -291,10 +318,9 @@
             const input = document.getElementById('promoInput');
             const code = input.value.trim().toUpperCase();
             
-            // ЕДИНСТВЕННЫЙ СУПЕР ЧИТ-КОД НА ОТКРЫТИЕ ВСЕГО СРАЗУ
             if (code === "OPEN777") {
-                streak = 21; // Максимальная серия дней
-                unlockedThemes = ["default", "forest", "lake", "space", "mountain", "cat"]; // Открыть все темы
+                streak = 21;
+                unlockedThemes = ["default", "forest", "lake", "space", "mountain", "cat"];
                 localStorage.setItem('habit_streak', streak);
                 localStorage.setItem('unlocked_themes', JSON.stringify(unlockedThemes));
                 playSound(900, 0.2, 'sine');
@@ -305,7 +331,6 @@
                 return;
             }
 
-            // ЧИТ-КОД ПОЛНОГО СБРОСА ДЛЯ СЛУЖЕБНЫХ ТЕСТОВ
             if (code === "RESET777") {
                 streak = 0;
                 currentTheme = "default";
@@ -347,6 +372,7 @@
             } else {
                 body.classList.add('theme-' + currentTheme);
             }
+            changeContainerOpacity();
         }
 
         function updateShopUI() {
@@ -432,6 +458,8 @@
             render();
         }
 
+        // Установка сохраненного ползунка прозрачности
+        document.getElementById('opacitySlider').value = savedOpacity;
         applyThemeStyles();
         updateShopUI();
         render();
