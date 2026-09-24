@@ -1,3 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Атмосферный трекер</title>
+    <!-- ПОДКЛЮЧЕНИЕ ОФИЦИАЛЬНОГО TELEGRAM SDK -->
+    <script src="https://telegram.org"></script>
+    <style>
+        @keyframes spacePulse { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+        @keyframes neonGlow { 0%, 100% { box-shadow: 0 0 15px #bb86fc; } 50% { box-shadow: 0 0 35px #6f42c1; } }
+        @keyframes cozyGlow { 0%, 100% { box-shadow: 0 0 15px #ffb366; } 50% { box-shadow: 0 0 35px #ff8000; } }
+        
+        body { font-family: sans-serif; background: #fff5eb; display: flex; justify-content: center; padding-top: 20px; transition: all 0.5s ease; min-height: 100vh; margin: 0; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; image-rendering: -webkit-optimize-contrast; position: relative; overflow: hidden; }
+        #brightnessMask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; opacity: 0; pointer-events: none; z-index: 9999; transition: opacity 0.1s; }
+
+        .container { background: rgba(255, 255, 255, 0.45); padding: 20px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); width: 320px; transition: background 0.3s ease, border 0.5s ease, box-shadow 0.5s ease; position: relative; overflow: hidden; height: 500px; display: flex; flex-direction: column; backdrop-filter: blur(4px); margin-bottom: 50px; z-index: 10; }
+        .tab-title { font-size: 22px; font-weight: bold; color: #ff8c42; margin-top: 0; margin-bottom: 20px; text-align: left; transition: color 0.5s; z-index: 2; }
+        
+        #weatherCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .tab-content { flex: 1; overflow-y: auto; display: none; padding-bottom: 20px; position: relative; z-index: 2; }
+        .tab-content.active { display: flex; flex-direction: column; }
+        ul { list-style: none; padding: 0; margin: 0; flex: 1; }
+        li { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .task-text { flex: 1; margin-left: 10px; font-size: 15px; word-break: break-word; color: #111; font-weight: bold; }
+        .completed { text-decoration: line-through; color: #666 !important; opacity: 0.6; }
+        .del-btn { background: #ff4d4d; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .fab-btn { position: absolute; bottom: 15px; right: 5px; width: 50px; height: 50px; background: #ff8c42; color: white; border: none; border-radius: 50%; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,140,66,0.4); transition: all 0.2s; z-index: 10; }
+        .fab-btn:hover { transform: scale(1.05); background: #e0732f; }
+
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+        .modal-card { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); box-sizing: border-box; }
+        .modal-card h4 { margin-top: 0; margin-bottom: 12px; color: #222; font-size: 15px; font-weight: bold; }
+        .modal-card input { width: 100%; padding: 10px; border: 2px solid #ffcc99; border-radius: 8px; outline: none; margin-bottom: 15px; box-sizing: border-box; font-size: 14px; font-weight: bold; background: white; color: #111; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-btn-save { background: #ff8c42; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .modal-btn-cancel { background: #eee; color: #444; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+
+        .nav-bar { display: flex; justify-content: space-around; background: rgba(255, 255, 255, 0.45); border-top: 1px solid rgba(0,0,0,0.08); margin: 15px -20px -20px -20px; padding: 12px 0; backdrop-filter: blur(10px); z-index: 6; }
+        .nav-btn { background: none; border: none; color: #444; font-size: 22px; cursor: pointer; width: 50px; height: 40px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; position: relative; }
+        .nav-btn .nav-label { font-size: 9px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #333; }
+        .nav-btn.active { color: #ff8c42; background: rgba(255,140,66,0.15); }
+        .nav-btn.active .nav-label { color: #ff8c42; font-weight: 900; }
+        .streak-info { text-align: center; font-weight: bold; font-size: 16px; color: #222; margin-bottom: 20px; background: rgba(255, 242, 230, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,140,66,0.2); }
+        .badge-container { display: flex; justify-content: space-around; margin-top: 15px; }
+        .badge { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #444; font-weight: bold; text-align: center; width: 80px; }
+        .badge-icon { width: 48px; height: 45px; background: rgba(0,0,0,0.1); filter: grayscale(1); margin-bottom: 5px; border: 2px solid rgba(0,0,0,0.2); transition: all 0.3s; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: normal; }
+        .badge.active .badge-icon { filter: grayscale(0); background: rgba(255,255,255,0.9); border-color: #ff8c42; box-shadow: 0 4px 8px rgba(255,140,66,0.25); }
+        .badge.active { color: #111; }
+
+        .setting-row { margin-bottom: 18px; background: transparent !important; }
+        .setting-row label { display: block; font-size: 13px; color: #222; font-weight: bold; margin-bottom: 6px; background: transparent !important; }
+        .setting-row input[type="range"] { width: 100%; accent-color: #ff8c42; background: transparent !important; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background-color: rgba(0,0,0,0.2) !important; outline: none; margin: 10px 0; }
+        .setting-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #ff8c42; cursor: pointer; margin-top: -5px; }
+
+        .weather-btn-grid { display: flex; gap: 5px; margin-top: 5px; }
+        .w-btn { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.6); cursor: pointer; font-size: 11px; font-weight: bold; color: #111; }
+        .w-btn.active { background: #ff8c42; color: white; border-color: #ff8c42; }
+
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .shop-item { border: 1px solid rgba(0,0,0,0.08); padding: 8px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.5); font-weight: bold; color: #222; backdrop-filter: blur(2px); }
+        .shop-item.active { border-color: #ff8c42; background: rgba(255,249,245,0.8); }
+        .shop-item .status { font-size: 10px; color: #555; margin-top: 4px; display: block; }
+        .promo-group { display: flex; gap: 5px; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 10px; }
+        .promo-input { padding: 6px; border: 2px solid rgba(0,0,0,0.1); border-radius: 6px; font-size: 12px; flex: 1; text-transform: uppercase; background: rgba(255,255,255,0.7); font-weight: bold; color: #111; }
+        .promo-btn { background: #444; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        body.theme-forest { background: url('https://pinimg.com'); }
+        body.theme-forest .container { background: rgba(244, 249, 244, 0.45); border: 2px solid rgba(56,107,64,0.4); box-shadow: 0 8px 32px rgba(19,38,21,0.3); }
+        body.theme-forest .tab-title { color: #1b331e; }
+        body.theme-forest .nav-btn { color: #1b331e; }
+        body.theme-forest .nav-btn.active { color: #234227; background: rgba(56,107,64,0.18); }
+        body.theme-forest .nav-btn.active .nav-label { color: #234227; }
+        body.theme-forest .fab-btn { background: #386b40; box-shadow: 0 4px 12px rgba(56,107,64,0.4); }
+        body.theme-forest .setting-row input[type="range"] { accent-color: #386b40; }
+        body.theme-forest .setting-row input[type="range"]::-webkit-slider-thumb { background: #386b40; }
+        body.theme-forest .nav-bar { background: rgba(244, 249, 244, 0.5); }
+
+        body.theme-lake { background: url('./lake.png'); }
+        body.theme-lake .container { background: rgba(239, 251, 249, 0.45); border: 2px solid rgba(79,164,165,0.4); box-shadow: 0 8px 32px rgba(79,164,165,0.25); }
+        body.theme-lake .tab-title { color: #1e4445; }
+        body.theme-lake .nav-btn { color: #1e4445; }
+        body.theme-lake .nav-btn.active { color: #2e6162; background: rgba(79,164,165,0.2); }
+        body.theme-lake .nav-btn.active .nav-label { color: #2e6162; }
+        body.theme-lake .fab-btn { background: #4fa4a5; box-shadow: 0 4px 12px rgba(79,164,165,0.4); }
+        body.theme-lake .setting-row input[type="range"] { accent-color: #4fa4a5; }
+        body.theme-lake .setting-row input[type="range"]::-webkit-slider-thumb { background: #4fa4a5; }
+        body.theme-lake .nav-bar { background: rgba(239, 251, 249, 0.5); }
+
+        body.theme-space { background: url('./space.png'); }
+        body.theme-space .container { animation: neonGlow 4s infinite; }
+        body.theme-space .tab-title, body.theme-space .task-text, body.theme-space .streak-info, body.theme-space label { color: #bb86fc; }
+        body.theme-space .nav-btn { color: #aaa; }
+        body.theme-space .nav-btn.active { color: #bb86fc; background: rgba(187,134,252,0.18); }
+        body.theme-space .nav-btn.active .nav-label { color: #bb86fc; }
+        body.theme-space .nav-bar { background: rgba(18, 14, 28, 0.6); border-color: rgba(255,255,255,0.08); }
+        body.theme-space .streak-info, body.theme-space .shop-item { background: rgba(37,32,54,0.6); color: white; border-color: rgba(255,255,255,0.1); }
+        body.theme-space li { border-color: rgba(255,255,255,0.08); }
+        body.theme-space .fab-btn { background: #bb86fc; color: #140d26; box-shadow: 0 4px 12px rgba(187,134,252,0.4); }
+        body.theme-space .setting-row input[type="range"] { accent-color: #bb86fc; background-color: rgba(255,255,255,0.15) !important; }
+        body.theme-space .setting-row input[type="range"]::-webkit-slider-thumb { background: #bb86fc; }
+        body.theme-space .promo-input { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
+
+        body.theme-mountain { background: url('./mountain.png'); }
+        body.theme-mountain .container { background: rgba(248, 249, 250, 0.45); border: 2px solid rgba(90,98,104,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+        body.theme-mountain .tab-title { color: #212529; }
+        body.theme-mountain .nav-btn { color: #212529; }
+        body.theme-mountain .nav-btn.active { color: #495057; background: rgba(90,98,104,0.18); }
+        body.theme-mountain .nav-btn.active .nav-label { color: #495057; }
+        body.theme-mountain .fab-btn { background: #5a6268; box-shadow: 0 4px 12px rgba(90,98,104,0.4); }
+        body.theme-mountain .setting-row input[type="range"] { accent-color: #5a6268; }
+        body.theme-mountain .setting-row input[type="range"]::-webkit-slider-thumb { background: #5a6268; }
+        body.theme-mountain .nav-bar { background: rgba(248, 249, 250, 0.5); }
+
+        body.theme-cat { background: url('./cat.png'); }
+        body.theme-cat .container { background: rgba(58, 39, 29, 0.55); border: 2px solid rgba(255,153,51,0.4); color: #ffebcc; animation: cozyGlow 4s infinite; }
+        body.theme-cat .tab-title, body.theme-cat .task-text, body.theme-cat h3, body.theme-cat label { color: #ffcc99; }
+        body.theme-cat .nav-btn { color: #ffebcc; }
+        body.theme-cat .nav-btn.active { color: #ff9933; background: rgba(255,153,51,0.18); }
+        body.theme-cat .nav-btn.active .nav-label { color: #ff9933; font-weight: 900; }
+        body.theme-cat .nav-bar { background: rgba(58, 39, 29, 0.6); border-color: rgba(255,255,255,0.08); }
+        body.theme-cat .streak-info, body.theme-cat .shop-item { background: rgba(36,24,18,0.6); color: #ffcc99; border-color: rgba(255,255,255,0.1); }
+        body.theme-cat li { border-color: rgba(255,255,255,0.08); }
+        body.theme-cat .fab-btn { background: #ff9933; color: #241812; box-shadow: 0 4px 12px rgba(255,153,51,0.4); }
+        body.theme-cat .setting-row input[type="range"] { accent-color: #ff9933; background-color: rgba(255,255,255,0.15) !important; }
+        body.theme-cat .setting-row input[type="range"]::-webkit-slider-thumb { background: #ff9933; }
+        body.theme-cat .promo-input { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
+
+        body.night-theme { background: #2c2c2c !important; color: #ffffff; }
+        body.night-theme .container { background: #3d3d3d; color: #ffffff; }
+        body.night-theme .tab-title { color: #ffaa66; }
+        body.night-theme .streak-info { background: #4a4a4a; color: #fff; }
+        body.night-theme li { border-color: #4a4a4a; }
+        body.night-theme .task-text { color: #fff; }
+    </style>
+</head>
+<body>
+    <div id="brightnessMask"></div>
+    <div class="container" id="mainContainer">
+        <canvas id="weatherCanvas"></canvas>
+        <div class="modal-overlay" id="modalInputOverlay">
+            <div class="modal-card">
+                <h4 id="modalTypeTitle">Добавить элемент</h4>
+                <input type="text" id="modalTextInput" placeholder="Введите текст...">
+                <div class="modal-buttons">
+                    <button class="modal-btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="modal-btn-save" onclick="saveModalItem()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tab-tasks" class="tab-content active">
+            <div class="tab-title">Дела</div>
+            <ul id="taskList"></ul>
+            <button class="fab-btn" onclick="openModal('task')">+</button>
+        </div>
+
+        <div id="tab-habits" class="tab-content">
+            <div class="tab-title">Привычки</div>
+            <ul id="habitList"></ul>
+            <button class="fab-btn" onclick="openModal('habit')">+</button>
+        </div>
+
+        <div id="tab-achievements" class="tab-content">
+            <div class="tab-title" id="userNameTitle">Ваш прогресс</div>
+            <div class="streak-info" id="streakDisplay">🔥 Серия постоянства: 0 дней</div>
+            <div class="badge-container">
+                <div class="badge" id="badge3"><div class="badge-icon">🏆</div>3 Дня</div>
+                <div class="badge" id="badge7"><div class="badge-icon">👑</div>7 Дней</div>
+                <div class="badge" id="badge21"><div class="badge-icon">💎</div>21 День</div>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <div class="tab-title">Опции системы</div>
+            <div class="setting-row">
+                <label>Яркость</label>
+                <input type="range" id="brightnessSlider" min="0" max="80" value="80" oninput="changeBrightness()">
+            </div>
+            <div class="setting-row">
+                <label>Прозрачность карточки</label>
+                <input type="range" id="opacitySlider" min="10" max="100" value="93" oninput="changeContainerOpacity()">
+            </div>
+            <div class="setting-row">
+                <label>Громкость</label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="testVolumeSound()">
+            </div>
+            <div class="setting-row">
+                <label>Погода за окном (Тест)</label>
+                <div class="weather-btn-grid">
+                    <button class="w-btn active" id="w-sun" onclick="setWeather('sun')">Ясно☀️</button>
+                    <button class="w-btn" id="w-rain" onclick="setWeather('rain')">Дождь🌧️</button>
+                    <button class="w-btn" id="w-snow" onclick="setWeather('snow')">Снег❄️</button>
+                </div>
+            </div>
+            
+            <div class="shop-grid">
+                <div class="shop-item active" id="item-default" onclick="selectTheme('default')">Базовая<span class="status">Активна</span></div>
+                <div class="shop-item" id="item-forest" onclick="selectTheme('forest')">Лес 🌲<span class="status" id="status-forest">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-lake" onclick="selectTheme('lake')">Озеро 🌊<span class="status" id="status-lake">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-space" onclick="selectTheme('space')">Космос 🌌<span class="status" id="status-space">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-mountain" onclick="selectTheme('mountain')">Горы 🏔️<span class="status" id="status-mountain">🔒 Заблокировано</span></div>
+                <div class="shop-item" id="item-cat" onclick="selectTheme('cat')">Вечерняя комната ✨<span class="status" id="status-cat">🔒 Заблокировано</span></div>
+            </div>
+
+            <div class="promo-group">
+                <input type="text" id="promoInput" class="promo-input" placeholder="Чит-код разработчика">
+                <button class="promo-btn" onclick="applyPromo()">Ввод</button>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-btn active" id="btn-tasks" onclick="switchTab('tasks')">📋<div class="nav-label">Дела</div></button>
+            <button class="nav-btn" id="btn-habits" onclick="switchTab('habits')">🔁<div class="nav-label">Привычки</div></button>
+            <button class="nav-btn" id="btn-achievements" onclick="switchTab('achievements')">🏆<div class="nav-label">Успехи</div></button>
+            <button class="nav-btn" id="btn-settings" onclick="switchTab('settings')">⚙️<div class="nav-label">Опции</div></button>
+        </div>
+    </div>
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('tracker_tasks')) || [];
+        let habits = JSON.parse(localStorage.getItem('tracker_habits')) || [];
+        let streak = parseInt(localStorage.getItem('habit_streak')) || 0;
+        let lastCheckDate = localStorage.getItem('last_check_date') || "";
+        let currentTheme = localStorage.getItem('selected_theme') || "default";
+        let unlockedThemes = JSON.parse(localStorage.getItem('unlocked_themes')) || ["default"];
+        let savedOpacity = parseInt(localStorage.getItem('container_opacity')) || 93;
+        let currentSimulationWeather = localStorage.getItem('sim_weather') || "sun";
+        let activeModalType = '';
+        let isScreenPressed = false;
+
+        try { Telegram.WebApp.ready(); Telegram.WebApp.expand(); } catch(e) {}
+
+        function triggerHaptic() { try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e) {} }
+
+        document.addEventListener('pointerdown', () => {
+            isScreenPressed = true;
+            try { Telegram.WebApp.HapticFeedback.impactOccurred('medium'); } catch(e) {}
+        });
+        document.addEventListener('pointerup', () => { isScreenPressed = false; });
+
+        function loadTelegramUser() {
+            try {
+                const user = Telegram.WebApp.initDataUnsafe?.user;
+                if (user && user.first_name) {
+                    document.getElementById('userNameTitle').innerText = `${user.first_name}, ваш прогресс`;
+                } else { document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`; }
+            } catch(e) { document.getElementById('userNameTitle').innerText = `Разработчик, ваш прогресс`; }
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(frequency, duration, type = 'sine') {
+            try {
+                const volSlider = document.getElementById('volumeSlider');
+                const volume = volSlider ? (volSlider.value / 100) : 0.5;
+                if (volume === 0) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                gain.gain.setValueAtTime(volume * 0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playClickSound() { playSound(600, 0.08, 'triangle'); }
+        function testVolumeSound() { const volSlider = document.getElementById('volumeSlider'); playSound(300 + (volSlider.value * 4), 0.15, 'sine'); }
+
+        function switchTab(tabId) {
+            triggerHaptic(); playClickSound();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('active');
+        }
+
+        function changeBrightness() {
+            const slider = document.getElementById('brightnessSlider');
+            const mask = document.getElementById('brightnessMask');
+            mask.style.opacity = (80 - slider.value) / 100;
+        }
+
+        function changeContainerOpacity() {
+            const slider = document.getElementById('opacitySlider');
+            const container = document.getElementById('mainContainer');
+            const val = slider.value; localStorage.setItem('container_opacity', val);
+            if (currentTheme === "space") container.style.background = `rgba(24, 20, 36, ${val / 100})`;
+            else if (currentTheme === "cat") container.style.background = `rgba(58, 39, 29, ${val / 100})`;
+            else if (currentTheme === "forest") container.style.background = `rgba(244, 249, 244, ${val / 100})`;
+            else if (currentTheme === "lake") container.style.background = `rgba(239, 251, 249, ${val / 100})`;
+            else if (currentTheme === "mountain") container.style.background = `rgba(248, 249, 250, ${val / 100})`;
+            else container.style.background = `rgba(255, 255, 255, ${val / 100})`;
+        }
+        const canvas = document.getElementById('weatherCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() { if (canvas) { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; } }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 150);
+
+        function createParticles() {
+            particles = [];
+            const count = currentSimulationWeather === 'rain' ? 60 : 45;
+            for(let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: currentSimulationWeather === 'rain' ? (4 + Math.random() * 4) : (1 + Math.random() * 1.5),
+                    radius: currentSimulationWeather === 'rain' ? (1 + Math.random() * 0.5) : (1.5 + Math.random() * 2),
+                    drift: Math.random() * 0.5 - 0.25,
+                    length: 15 + Math.random() * 15
+                });
+            }
+        }
+
+        function updateWeatherEngine() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (currentSimulationWeather !== 'sun') {
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    if (currentSimulationWeather === 'rain') {
+                        ctx.strokeStyle = 'rgba(174,219,255,0.7)'; ctx.lineWidth = p.radius;
+                        ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.drift, p.y + p.length); ctx.stroke();
+                    } else {
+                        ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                    }
+                    if (isScreenPressed) { p.y += (Math.random() * 0.4 - 0.2); p.x += (Math.random() * 0.4 - 0.2); }
+                    else { p.y += p.speed; p.x += p.drift; }
+                    if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+                });
+            }
+            requestAnimationFrame(updateWeatherEngine);
+        }
+        requestAnimationFrame(updateWeatherEngine);
+
+        function setWeather(weatherType) {
+            triggerHaptic(); currentSimulationWeather = weatherType;
+            localStorage.setItem('sim_weather', weatherType);
+            document.querySelectorAll('.w-btn').forEach(btn => btn.classList.remove('active'));
+            if (weatherType === 'rain') document.getElementById('w-rain').classList.add('active');
+            else if (weatherType === 'snow') document.getElementById('w-snow').classList.add('active');
+            else document.getElementById('w-sun').classList.add('active');
+            createParticles();
+        }
+
         function openModal(type) {
             playClickSound(); triggerHaptic(); activeModalType = type;
             document.getElementById('modalTypeTitle').innerText = type === 'task' ? 'Новая одноразовая задача' : 'Новая ежедневная привычка';
